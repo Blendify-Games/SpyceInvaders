@@ -79,4 +79,5 @@ class Game(object):
         self.game_input.listen()
         scenes.current_scene_update()
         self.clock.tick(60)
+        pygame.display.set_caption(f'{GAME_NAME} (fps: {int(self.clock.get_fps())})')
         return self.running
