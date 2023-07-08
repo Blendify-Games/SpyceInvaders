@@ -4,6 +4,7 @@ import scenes
 from scenes.game_scene import GameScene
 from scenes.menu_scene import MenuScene
 from scenes.opening_scene import OpeningScene
+from res import load_img
 from res.config import SCREEN_SIZE, GAME_NAME
 
 class GameInput(object):
@@ -60,6 +61,7 @@ class Game(object):
     def __init__(self):
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         pygame.display.set_caption(GAME_NAME)
+        pygame.display.set_icon(load_img('icon.png'))
         self.screen.fill('black')
         self.running = False
         self.game_input = GameInput()

@@ -1,4 +1,5 @@
 import os
+import pygame
 
 _RD = os.path.join(os.path.dirname(__file__))
 ''' 
@@ -9,6 +10,9 @@ if sprite is a square: use one list of lines
 use res.util.get_sprite to load resource.
 '''
 SPRITE_MAP = {
+    # window icon
+    'icon'              : [[(11, 7), (11, 7)],
+                            [(1, 0), (1, 1)]],
     # player cannon
     'cannon'            : [(3, 5), (3, 6)],
     # invaders
@@ -87,6 +91,9 @@ SPRITE_MAP = {
     ' '                 : (11, 7)
 }
 
-def img(img_name):
+def img(img_name) -> str:
     '''returns image resource full path'''
     return os.path.join(_RD, 'img', img_name)
+
+def load_img(img_name) -> pygame.Surface:
+    return pygame.image.load(img(img_name)).convert_alpha()
