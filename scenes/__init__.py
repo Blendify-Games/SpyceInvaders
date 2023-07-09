@@ -12,9 +12,6 @@ class NoSceneBootedException(Exception):
     def __repr__(self):
         return self.message
 
-class SceneTransition(object):
-    pass
-
 class Scene(object):
     def __init__(self):
         self.screen = pygame.display.get_surface()
@@ -32,7 +29,7 @@ def boot_scene(scene: Scene, cache_previous:bool = False):
     if __CONTEXT_SCENE:
         __CONTEXT_SCENE.when_unload_do()
         if cache_previous:
-            __PREVIOUS_SCENES.append(cache_previous)
+            __PREVIOUS_SCENES.append(__CONTEXT_SCENE)
     __CONTEXT_SCENE = scene
 
 def unload_current_scene():

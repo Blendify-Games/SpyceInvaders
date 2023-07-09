@@ -64,20 +64,18 @@ class _Menu():
 class MenuScene(Scene):
     def setup(self):
         self.menu = _Menu(self.render_group)
-        self.__time_pressed = None
-        self.__time = pygame.time.get_ticks()
+        self.__time_pressed_init = None
+        game_instance().game_input.set_keypressing({
+            pygame.K_SPACE: self.start_game
+        })
     def start_game(self):
         self.menu.credits_text.setup_text('credit 01')
-        if not self.__time_pressed:
-            self.__time_pressed = pygame.time.get_ticks()
+        if not self.__time_pressed_init:
+            self.__time_pressed_init = pygame.time.get_ticks()
     def update(self):
         super().update()
         self.menu.update_invaders()
         t = pygame.time.get_ticks()
-        if t - self.__time > 500:
-            game_instance().game_input.set_keypressing({
-                pygame.K_SPACE: self.start_game
-            })
-        if self.__time_pressed and t - self.__time_pressed > 1000:
-            boot_scene(GameScene())
+        if self.__time_pressed_init and t - self.__time_pressed_init > 1000:
             game_instance().game_input.clear_key_func()
+            boot_scene(GameScene())
