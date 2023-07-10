@@ -2,12 +2,14 @@ GAME_NAME       = 'Spyce Invaders'
 SCREEN_SIZE     = (1024, 768)
 SPRITE_SCALE    = 4
 SPRITE_SIZE     = (8 * SPRITE_SCALE, 8 * SPRITE_SCALE)
-FLOOR           = 700
-INVADER_COLORS  = {
-    'crab_invader'      : '#f0ee7f',
-    'octopus_invader'   : '#73eba3',
+ENTITY_COLORS  = {
+    'crab_invader'      : '#f26d8e',
+    'octopus_invader'   : '#f7de6a',
     'squid_invader'     : '#9ed2f0',
-    'ufo_invader'       : '#eb75a4',
+    'ufo_invader'       : '#fc0330',
+    'hangar'            : '#078c07',
+    'cannon'            : '#078c07',
+    'floor_line'        : '#078c07'
 }
 
 SHOT_COLORS = [

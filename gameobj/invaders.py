@@ -1,65 +1,17 @@
 import pygame
 import random
-from gameobj.explosion import Explosion
 from game_instance import game_instance
+from gameobj.explosion import Explosion
+from gameobj.shot import InvaderShotObject
 from res import SPRITE_MAP
 from res.config import (
-    SPRITE_SIZE, INVADER_COLORS,
-    SHOT_COLORS, FLOOR
+    SPRITE_SIZE, ENTITY_COLORS,
+    SHOT_COLORS
 )
 from res.util import (
     change_surf_color,
     get_sprite_block
 )
-
-class _InvaderShot(pygame.sprite.Sprite):
-    '''
-    This class is instantiated by the Invader
-    and represents the shot object.
-    There are three types of shots, shot_0, shot_1,
-    and shot_2
-    '''
-    speed_y = 10
-    def __init__(self, posrect:pygame.Rect,
-                    groups:'GroupList',
-                    shot_type:str='shot_0'):
-        super().__init__(*groups)
-        self.__groups = groups
-        self.__time = pygame.time.get_ticks()
-        self.__shot_type = shot_type
-        self.__build_sprite_image()
-        self.index = 0
-        self.image = self.image_list[self.index]
-        self.rect = self.image.get_rect()
-        self.rect.center = posrect.center
-        self.__time = pygame.time.get_ticks()
-    def __build_sprite_image(self):
-        img = get_sprite_block(self.__shot_type)
-        w, h = img.get_rect().size
-        self.image_list = [
-            img.subsurface((0, 0, w//4, h)),
-            img.subsurface((w//4, 0, w//4, h)),
-            img.subsurface((w//2, 0, w//4, h)),
-            img.subsurface((w//2 + w//4, 0, w//4, h)),
-        ]
-        choice = random.choice(SHOT_COLORS)
-        for img in self.image_list:
-            change_surf_color(img, choice)
-    def kill(self):
-        explosion = Explosion(
-            self.rect, self.__groups[0],
-            'explosion_1'
-        )
-        super().kill()
-    def update(self):
-        t = pygame.time.get_ticks()
-        if t - self.__time > 10:
-            self.index = (self.index + 1) % len(self.image_list)
-            self.image = self.image_list[self.index]
-            self.__time = t
-        self.rect.centery += self.speed_y
-        if self.rect.bottom > FLOOR:
-            self.kill()
 
 class Invader(pygame.sprite.Sprite):
     '''
@@ -71,7 +23,9 @@ class Invader(pygame.sprite.Sprite):
 
     Invader(groups, *sprite_refs: str)
     '''
-    def __init__(self, groups:'GroupList', *sprite_refs:str):
+    SCORE_POINT = 0 # score point value
+    def __init__(self, groups:'render_group, ...', 
+                *sprite_refs:str):
         super().__init__(*groups)
         self.__groups = groups
         self.index = 0
@@ -89,11 +43,8 @@ class Invader(pygame.sprite.Sprite):
         for sn in sprite_refs:
             img = get_sprite_block(sn)
             self.image_list.append(img)
-    def shot(self):
-        shot = _InvaderShot(
-            self.rect, self.__groups,
-            random.choice(['shot_0', 'shot_1', 'shot_2'])
-        )
+    def shoot(self, shot_group:pygame.sprite.Group):
+        InvaderShotObject(self.rect, (self.__groups[0], shot_group))
     def kill(self):
         explosion = Explosion(
             self.rect, self.__groups[0],
@@ -115,35 +66,39 @@ class Invader(pygame.sprite.Sprite):
             self.rect.y += abs(self.speed)
         self.update_sprite()
 
-class CrabInvader(Invader):
+class UFOInvader(Invader):
     '''
-    This class represents a crab invader.
+    This class represents a ufo invader.
     '''
-    def __init__(self, *groups:pygame.sprite.Group):
-        super().__init__(groups, 'crab_1', 'crab_2')
-        self.set_color(INVADER_COLORS['crab_invader'])
-
-class OctopusInvader(Invader):
-    '''
-    This class represents a octopus invader.
-    '''
-    def __init__(self, *groups:pygame.sprite.Group):
-        super().__init__(groups, 'octopus_1', 'octopus_2')
-        self.set_color(INVADER_COLORS['octopus_invader'])
+    def __init__(self, *groups:'render_group, ...'):
+        super().__init__(groups, 'ufo')
+        self.SCORE_POINT = 50
+        self.set_color(ENTITY_COLORS['ufo_invader'])
+        self._explosion_key = 'explosion_3'
 
 class SquidInvader(Invader):
     '''
     This class represents a squid invader.
     '''
-    def __init__(self, *groups:pygame.sprite.Group):
+    def __init__(self, *groups:'render_group, ...'):
         super().__init__(groups, 'squid_1', 'squid_2')
-        self.set_color(INVADER_COLORS['squid_invader'])
+        self.SCORE_POINT = 30
+        self.set_color(ENTITY_COLORS['squid_invader'])
 
-class UFOInvader(Invader):
+class CrabInvader(Invader):
     '''
-    This class represents a ufo invader.
+    This class represents a crab invader.
     '''
-    def __init__(self, *groups:pygame.sprite.Group):
-        super().__init__(groups, 'ufo')
-        self.set_color(INVADER_COLORS['ufo_invader'])
-        self._explosion_key = 'explosion_3'
+    def __init__(self, *groups:'render_group, ...'):
+        super().__init__(groups, 'crab_2', 'crab_1')
+        self.SCORE_POINT = 20
+        self.set_color(ENTITY_COLORS['crab_invader'])
+
+class OctopusInvader(Invader):
+    '''
+    This class represents a octopus invader.
+    '''
+    def __init__(self, *groups:'render_group, ...'):
+        super().__init__(groups, 'octopus_2', 'octopus_1')
+        self.SCORE_POINT = 10
+        self.set_color(ENTITY_COLORS['octopus_invader'])
