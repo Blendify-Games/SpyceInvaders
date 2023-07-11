@@ -8,7 +8,8 @@ from game_instance import game_instance
 from res.config import SCREEN_SIZE, GAME_NAME
 from scenes import Scene, boot_scene
 from scenes.game_scene import GameScene
-from scenes.writing import TextWrite
+from scenes.instructions_scene import InstructionsScene
+from scenes.writing import TextWrite, Figure
 
 class _Menu():
     def __init__(self, render_group:pygame.sprite.Group):
@@ -54,6 +55,9 @@ class _Menu():
                 'credit 00', (SCREEN_SIZE[0]*0.5, SCREEN_SIZE[1]*0.9))
         text = TextWrite(self.__render_group, '<press space to continue>')
         text.rect.centery = SCREEN_SIZE[1]*0.8
+        Figure(self.__render_group, '?-help',
+                centerpos=(SCREEN_SIZE[0]*.09, SCREEN_SIZE[1]*.95), 
+                fadein=True)
     def update_invaders(self):
         t = pygame.time.get_ticks()
         if t - self.__time > 500:
@@ -66,12 +70,16 @@ class MenuScene(Scene):
         self.menu = _Menu(self.render_group)
         self.__time_pressed_init = None
         game_instance().game_input.set_keypressing({
-            pygame.K_SPACE: self.start_game
+            pygame.K_SPACE: self.start_game,
+            pygame.K_h: self.show_instructions
         })
     def resume_execution(self):
         self.setup()
     def when_unload_do(self):
         self.render_group.empty()
+    def show_instructions(self):
+        game_instance().game_input.clear_key_func()
+        boot_scene(InstructionsScene(), cache_previous=True)
     def start_game(self):
         self.menu.credits_text.setup_text('credit 01')
         if not self.__time_pressed_init:
