@@ -1,5 +1,6 @@
 import random
 import pygame
+import scenes
 
 from scenes import Scene
 
@@ -17,7 +18,6 @@ from scenes.writing import TextWrite
 
 # position of the first invader to be blitted
 _POS_INVADER = (160, 352)
-_X, _Y = _POS_INVADER
 # position of the first hangar to be blitted
 _POS_HANGAR = (175, 544)
 # floor
@@ -38,6 +38,7 @@ class _ScoreBoard(TextWrite):
         self.setup_text(f'<{self.score_points:04d}>')
 
 class _StatusDisplay(object):
+    __LIVES = 3
     def __init__(self, render_group:pygame.sprite.Group):
         self.render_group = render_group
         self.score_board = _ScoreBoard(render_group)
@@ -53,19 +54,20 @@ class _StatusDisplay(object):
         self.floor_line.rect.topleft = (0, _POS_FLOOR_Y)
     def __build_game_chances_display(self):
         self.__game_chances = []
-        for i in range(0, 2):
+        for i in range(0, self.__LIVES - 1):
             cannon = Cannon(self.render_group)
             cannon.rect.topleft = (i*64 + 80, _POS_FLOOR_Y + 16)
             self.__game_chances.append(cannon)
         self.__game_chances_text = TextWrite(
-            self.render_group, str(len(self.__game_chances)+1),
+            self.render_group, str(self.__LIVES),
             (48, _POS_FLOOR_Y+32)
         )
     def decrease_game_chances(self) -> int:
-        if len(self.__game_chances) > 1:
+        if len(self.__game_chances) > 0:
             self.__game_chances.pop().remove(self.render_group)
-        self.__game_chances_text.setup_text(str(len(self.__game_chances)+1))
-        return len(self.__game_chances)
+        self.__LIVES -= 1
+        self.__game_chances_text.setup_text(str(self.__LIVES))
+        return self.__LIVES
 
 class _PlayerControl(object):
     __SPEED = 5
@@ -90,12 +92,18 @@ class _PlayerControl(object):
         if not len(self.__groups[1]):
             self.cannon.shoot(self.__groups[1])
     def is_player_dead(self) -> bool:
-        collided1 = pygame.sprite.spritecollideany(
-            self.cannon, self.__groups[3])
+        collided1 = pygame.sprite.spritecollide(
+            self.cannon, self.__groups[3], True)
         if collided1:
             self.cannon.kill()
-            collided1.remove(*self.__groups)
             return True
+        player_shots = self.__groups[1].sprites()
+        if player_shots:
+            collided2 = pygame.sprite.spritecollideany(
+                player_shots[0], self.__groups[3]
+            )
+            if collided2:
+                player_shots[0].miss()
         return False
     def get_controls(self) -> dict:
         return {
@@ -106,14 +114,28 @@ class _PlayerControl(object):
 
 class GameScene(Scene):
     def setup(self):
+        self.__status_display = _StatusDisplay(self.render_group)
         self.invaders = {
-            OctopusInvader   : {'sprites': [], 'max': 22},
-            CrabInvader      : {'sprites': [], 'max': 22},
-            SquidInvader     : {'sprites': [], 'max': 11},
-            UFOInvader       : {'sprites': [], 'max': 1},
-            'order'          : [UFOInvader, SquidInvader, CrabInvader, OctopusInvader]
+            'shoot_probability'    : 1.5,
+            'move_time'            : 900,
+            'speed_up_per_kill'    : 16
         }
-        self.hangars = []
+        self.__init_game()
+    def __init_game(self):
+        self._X, self._Y = _POS_INVADER
+        self.invaders.update({
+            OctopusInvader   : {'n': 0, 'max': 22},
+            CrabInvader      : {'n': 0, 'max': 22},
+            SquidInvader     : {'n': 0, 'max': 11},
+            UFOInvader       : {'n': 0, 'max': 1},
+            'total_invaders' : 0,
+            'order'          : [UFOInvader, SquidInvader, CrabInvader, OctopusInvader],
+            'last_move'      : pygame.time.get_ticks(),
+            'ufo_present'    : False,
+            'ufo_abs_time'   : pygame.time.get_ticks(),
+            'hit_boundaries' : False,
+            'go_invert'      : True,
+        }) # this structure controls invaders instantiation
         self.__inv_class = self.invaders['order'].pop()
         self.__time = pygame.time.get_ticks()
         self.__time_inv_created = pygame.time.get_ticks()
@@ -121,35 +143,34 @@ class GameScene(Scene):
         self.__player_shot_group = pygame.sprite.Group()
         self.__enemy_group = pygame.sprite.Group()
         self.__enemy_shot_group = pygame.sprite.Group()
-
+        self.__hangar_group = pygame.sprite.Group()
+        self.__ufo_invader = None
     # game scene iterations
     def __build_hangars(self):
         for i in range(0, 4):
-            hangar = Hangar(self.render_group)
+            hangar = Hangar(self.render_group, self.__hangar_group)
             hangar.rect.topleft = \
                 (i * SPRITE_SIZE[0] * 6) + _POS_HANGAR[0], _POS_HANGAR[1]
-            self.hangars.append(hangar)
-        self.__iteration = self.__build_bottom
-    def __build_bottom(self):
-        self.__status_display = _StatusDisplay(self.render_group)
         self.__iteration = self.__build_invaders
     def __build_invaders(self):
-        global _POS_INVADER, _X, _Y
+        global _POS_INVADER
         t = pygame.time.get_ticks()
         if t - self.__time_inv_created > 30:
             inv = self.__inv_class(self.render_group, self.__enemy_group)
-            self.invaders[self.__inv_class]['sprites'].append(inv)
+            self.invaders[self.__inv_class]['n'] += 1
             if self.__inv_class == UFOInvader:
-                inv.rect.topleft = -SPRITE_SIZE[0] * 0, _Y-16
+                self.__ufo_invader = inv
+                inv.rect.topleft = -SPRITE_SIZE[0] * 2, self._Y-16
             else:
-                inv.rect.topleft = _X, _Y
-            _X += SPRITE_SIZE[0] * 2
-            if len(self.invaders[self.__inv_class]['sprites']) % 11 == 0:
-                _Y -= SPRITE_SIZE[1] * 2
-                _X = _POS_INVADER[0]
-            if len(self.invaders[self.__inv_class]['sprites']) == \
+                inv.rect.topleft = self._X, self._Y
+            self._X += SPRITE_SIZE[0] * 2
+            if self.invaders[self.__inv_class]['n'] % 11 == 0:
+                self._Y -= SPRITE_SIZE[1] * 2
+                self._X = _POS_INVADER[0]
+            if self.invaders[self.__inv_class]['n'] == \
                     self.invaders[self.__inv_class]['max']:
                 if len(self.invaders['order']) < 1:
+                    self.invaders['total_invaders'] = len(self.__enemy_group.sprites())
                     self.__iteration = self.__init_game_execution
                 else:
                     self.__inv_class = self.invaders['order'].pop()
@@ -164,11 +185,17 @@ class GameScene(Scene):
             self.__player.get_controls()
         )
     def __game_execution(self):
-        if random.randint(0, 1000) < 20:
+        global _POS_FLOOR_Y
+
+        # decide one enemy to shoot
+        if len(self.__enemy_group.sprites()) > 0 and (
+            random.random() * 100 < self.invaders['shoot_probability']):
             sprite = self.__enemy_group.sprites()[
                 random.randint(0, len(self.__enemy_group)-1)
             ]
-            sprite.shoot(self.__enemy_shot_group)
+            sprite.shoot(self.__enemy_shot_group, limit=(0, _POS_FLOOR_Y))
+        
+        # check if invader has been shot
         if len(self.__player_shot_group):
             killed = pygame.sprite.groupcollide(
                 self.__player_shot_group,
@@ -181,19 +208,83 @@ class GameScene(Scene):
                 )
                 v[0].kill()
                 break
+        
+        # move invaders
+        self.__move_common_invaders()
+        if self.__ufo_invader.alive():
+            self.__move_ufo()
+
+        # check if player has been killed
         if self.__player.is_player_dead():
             self.__player_was_killed()
     def __reset_game(self):
-        pass
+        t = pygame.time.get_ticks()
+        if t - self.__time > 2000:
+            self.__iteration = self.__init_game_execution
     def __end_game(self):
-        pass
+        t = pygame.time.get_ticks()
+        if t - self.__time > 30:
+            if len(self.__enemy_group.sprites()):
+                enemy = self.__enemy_group.sprites()[0]
+                enemy.remove(self.render_group, self.__enemy_group)
+                if not len(self.__enemy_group.sprites()):
+                    TextWrite(self.render_group, 'Game Over',
+                        (SCREEN_SIZE[0]//2, SCREEN_SIZE[1]*.4),
+                        step_writing_time=200, wait_to_begin=1000)
+                self.__time = t
+        if t - self.__time > 5000:
+            scenes.unload_current_scene()
+
     # game scene functionalities
+    def __move_common_invaders(self):
+        t = pygame.time.get_ticks()
+        t2 = self.invaders['move_time'] - (
+            self.invaders['total_invaders'] - len(self.__enemy_group.sprites())
+        ) * self.invaders['speed_up_per_kill']
+        if t - self.invaders['last_move'] > t2:
+            # identify if any invader hit screen boundaries
+            for invader in self.__enemy_group.sprites():
+                if type(invader) != UFOInvader and \
+                    (not self.invaders['hit_boundaries']) and (
+                    invader.rect.left - invader.rect.w//2 < 0 or
+                    invader.rect.right + invader.rect.w//2 > SCREEN_SIZE[0]):
+                    self.invaders['hit_boundaries'] = True
+                    break
+            # if hit_boundaries go down and then go invert
+            if self.invaders['hit_boundaries'] and \
+                not self.invaders['go_invert']:
+                for invader in self.__enemy_group.sprites():
+                    if type(invader) != UFOInvader:
+                        invader.move(down=True)
+                        invader.change_direction()
+                self.invaders['go_invert'] = True
+            else:
+                for invader in self.__enemy_group.sprites():
+                    if type(invader) != UFOInvader:
+                        invader.move()
+                self.invaders['hit_boundaries'] = False
+                self.invaders['go_invert'] = False
+            self.invaders['last_move'] = t
+    def __move_ufo(self):
+        t = pygame.time.get_ticks()
+        if not self.invaders['ufo_present']:
+            if t - self.invaders['ufo_abs_time'] > 5000:
+                if not self.invaders['ufo_present']:
+                    if random.choice([True, False]):
+                        self.invaders['ufo_present'] = True
+                self.invaders['ufo_abs_time'] = t    
+        else:
+            self.invaders['ufo_present'] = \
+                not self.__ufo_invader.move_until_limits()
+            self.invaders['ufo_abs_time'] = t
     def __player_was_killed(self):
         self.__player = None
         game_instance().game_input.clear_key_func()
         if self.__status_display.decrease_game_chances() > 0:
+            self.__time = pygame.time.get_ticks()
             self.__iteration = self.__reset_game
         else:
+            self.__time = pygame.time.get_ticks()
             self.__iteration = self.__end_game
     def update(self):
         super().update()

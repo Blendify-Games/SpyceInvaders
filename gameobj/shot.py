@@ -12,6 +12,7 @@ class ShotObject(pygame.sprite.Sprite):
     and shot_2
     '''
     _SPEED_Y = 10
+    LIMIT = (0, SCREEN_SIZE[1])
     def __init__(self, posrect:pygame.Rect,
                     groups:'render_group, shot_group',
                     shot_type:str='shot_0'):
@@ -52,8 +53,8 @@ class ShotObject(pygame.sprite.Sprite):
             self.image = self.image_list[self.index]
             self.__time = t
         self.rect.centery += self._SPEED_Y
-        if self.rect.top < 0 or \
-            self.rect.bottom > SCREEN_SIZE[1]:
+        if self.rect.top < self.LIMIT[0] or \
+            self.rect.bottom > self.LIMIT[1]:
             self.miss()
 
 class InvaderShotObject(ShotObject):

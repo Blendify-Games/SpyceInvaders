@@ -6,7 +6,7 @@ from gameobj.shot import InvaderShotObject
 from res import SPRITE_MAP
 from res.config import (
     SPRITE_SIZE, ENTITY_COLORS,
-    SHOT_COLORS
+    SHOT_COLORS, SCREEN_SIZE
 )
 from res.util import (
     change_surf_color,
@@ -43,8 +43,10 @@ class Invader(pygame.sprite.Sprite):
         for sn in sprite_refs:
             img = get_sprite_block(sn)
             self.image_list.append(img)
-    def shoot(self, shot_group:pygame.sprite.Group):
-        InvaderShotObject(self.rect, (self.__groups[0], shot_group))
+    def shoot(self, shot_group:pygame.sprite.Group, limit:tuple=None):
+        shot = InvaderShotObject(self.rect, (self.__groups[0], shot_group))
+        if limit:
+            shot.LIMIT = limit
     def kill(self):
         explosion = Explosion(
             self.rect, self.__groups[0],
@@ -58,12 +60,13 @@ class Invader(pygame.sprite.Sprite):
     def update_sprite(self):
         self.index = (self.index + 1) % len(self.image_list)
         self.image = self.image_list[self.index]
-    def move(self, x_inv:bool=False, y:bool=False):
-        if x_inv:
-            self.speed = -self.speed
-        self.rect.x += self.speed
-        if y:
+    def change_direction(self):
+        self.speed = -self.speed
+    def move(self, down:bool=False):
+        if down:
             self.rect.y += abs(self.speed)
+        else:
+            self.rect.x += self.speed
         self.update_sprite()
 
 class UFOInvader(Invader):
@@ -75,6 +78,17 @@ class UFOInvader(Invader):
         self.SCORE_POINT = 50
         self.set_color(ENTITY_COLORS['ufo_invader'])
         self._explosion_key = 'explosion_3'
+        self.speed = 2
+    def move_until_limits(self, limits:tuple=(0, SCREEN_SIZE[0])) -> bool:
+        '''move ufo until beyond its limits and then invert his
+        direction. If reached limit this method returns true.'''
+        reached_limit = False
+        if (self.speed > 0 and self.rect.left - 10 > limits[1]) or \
+            (self.speed < 0 and self.rect.right + 10 < limits[0]):
+            self.change_direction()
+            reached_limit = True
+        self.move()
+        return reached_limit
 
 class SquidInvader(Invader):
     '''

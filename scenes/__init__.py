@@ -19,6 +19,8 @@ class Scene(object):
         self.setup()
     def setup(self):
         raise NotImplementedError()
+    def resume_execution(self):
+        pass
     def when_unload_do(self):
         pass
     def update(self):
@@ -37,6 +39,7 @@ def unload_current_scene():
     scene = __CONTEXT_SCENE
     if __PREVIOUS_SCENES:
         __CONTEXT_SCENE = __PREVIOUS_SCENES.pop()
+        __CONTEXT_SCENE.resume_execution()
         scene.when_unload_do()
     else:
         game_instance().quit()

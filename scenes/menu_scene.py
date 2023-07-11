@@ -68,6 +68,10 @@ class MenuScene(Scene):
         game_instance().game_input.set_keypressing({
             pygame.K_SPACE: self.start_game
         })
+    def resume_execution(self):
+        self.setup()
+    def when_unload_do(self):
+        self.render_group.empty()
     def start_game(self):
         self.menu.credits_text.setup_text('credit 01')
         if not self.__time_pressed_init:
@@ -78,4 +82,4 @@ class MenuScene(Scene):
         t = pygame.time.get_ticks()
         if self.__time_pressed_init and t - self.__time_pressed_init > 1000:
             game_instance().game_input.clear_key_func()
-            boot_scene(GameScene())
+            boot_scene(GameScene(), cache_previous=True)
