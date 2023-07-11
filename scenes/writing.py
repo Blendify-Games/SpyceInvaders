@@ -53,6 +53,8 @@ class Figure(pygame.sprite.Sprite):
         self.rect.center = centerpos
         self.__fadein = fadein
         self.__image_alpha = 0
+        if self.__fadein:
+            self.image.set_alpha(self.__image_alpha)
         self.__time = pygame.time.get_ticks()
         self.__init_time = pygame.time.get_ticks()
     def update(self):
