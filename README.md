@@ -6,7 +6,7 @@ biblioteca [pygame-ce](https://pyga.me/). A distribuição deste jogo e seu cont
 ## Executando este jogo
 
 Este jogo foi desenvolvido utilizando python 3.11. Após a instalação do python, é recomendável que você crie um
-ambiente virtual de execução para as bibliotecas utilizadas neste projeto. Utiliza o virtualenv para tal. 
+ambiente virtual de execução para as bibliotecas utilizadas neste projeto. Utilize o virtualenv para tal. 
 Faça a instalação do virtualenv e, dentro da pasta do jogo, crie um ambiente virtual. Acesse um terminal e digite:
 
 ```bash
