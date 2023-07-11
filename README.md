@@ -1,4 +1,4 @@
-# Spyce Invaders <img src=./res/img/icon.png height="27" width="35">
+# Spyce Invaders <img src=./res/img/icon.png height="27" width="35"> (see in [en-us](./README-en-us.md))
 
 Este é um jogo open source e livre feito por um fã de Space Invaders como forma de tributo e também de experimentação da 
 biblioteca [pygame-ce](https://pyga.me/). A distribuição deste jogo e seu conteúdo é de forma livre e gratuita.
