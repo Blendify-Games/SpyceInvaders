@@ -94,15 +94,17 @@ class _PlayerControl(object):
     def is_player_dead(self) -> bool:
         collided1 = pygame.sprite.spritecollide(
             self.cannon, self.__groups[3], True)
-        if collided1:
+        collided2 = pygame.sprite.spritecollide(
+            self.cannon, self.__groups[2], False)
+        if collided1 or collided2:
             self.cannon.kill()
             return True
         player_shots = self.__groups[1].sprites()
         if player_shots:
-            collided2 = pygame.sprite.spritecollideany(
+            collided3 = pygame.sprite.spritecollideany(
                 player_shots[0], self.__groups[3]
             )
-            if collided2:
+            if collided3:
                 player_shots[0].miss()
         return False
     def get_controls(self) -> dict:
@@ -111,6 +113,8 @@ class _PlayerControl(object):
             pygame.K_d: self.__move_right,
             pygame.K_SPACE: self.__shoot
         }
+    def quit(self):
+        self.cannon.remove(self.__groups[0])
 
 class GameScene(Scene):
     def setup(self):
@@ -123,6 +127,7 @@ class GameScene(Scene):
         self.__init_game()
     def __init_game(self):
         self._X, self._Y = _POS_INVADER
+        game_instance().game_input.clear_key_func()
         self.invaders.update({
             OctopusInvader   : {'n': 0, 'max': 22},
             CrabInvader      : {'n': 0, 'max': 22},
@@ -214,9 +219,24 @@ class GameScene(Scene):
         if self.__ufo_invader.alive():
             self.__move_ufo()
 
+        # check hangar collisions
+        self.__handle_hangar_collisions()
+
+        # check if all enemies have been killed
+        self.__player_wins()
+
         # check if player has been killed
         if self.__player.is_player_dead():
             self.__player_was_killed()
+    def __next_wave(self):
+        t = pygame.time.get_ticks()
+        if t - self.__time > 5000:
+            self.invaders['shoot_probability'] += 1
+            # remove the "you won" text
+            self.render_group.remove(
+                self.render_group.sprites()[-1]
+            )
+            self.__init_game()
     def __reset_game(self):
         t = pygame.time.get_ticks()
         if t - self.__time > 2000:
@@ -277,6 +297,21 @@ class GameScene(Scene):
             self.invaders['ufo_present'] = \
                 not self.__ufo_invader.move_until_limits()
             self.invaders['ufo_abs_time'] = t
+    def __handle_hangar_collisions(self):
+        collided = pygame.sprite.groupcollide(
+            self.__hangar_group, self.__enemy_shot_group,
+            False, True, pygame.sprite.collide_mask
+        )
+        for hangar, shots in collided.items():
+            for shot in shots:
+                hangar.subtract_by_collision(shot)
+        collided = pygame.sprite.groupcollide(
+            self.__hangar_group, self.__player_shot_group,
+            False, True, pygame.sprite.collide_mask
+        )
+        for hangar, shots in collided.items():
+            for shot in shots:
+                hangar.subtract_by_collision(shot)
     def __player_was_killed(self):
         self.__player = None
         game_instance().game_input.clear_key_func()
@@ -286,6 +321,19 @@ class GameScene(Scene):
         else:
             self.__time = pygame.time.get_ticks()
             self.__iteration = self.__end_game
+    def __player_wins(self):
+        if not len(self.__enemy_group.sprites()) or \
+            (len(self.__enemy_group.sprites()) == 1 and self.__ufo_invader.alive()):
+            self.__player.quit()
+            self.render_group.remove(*self.__enemy_group.sprites())
+            self.render_group.remove(*self.__player_shot_group.sprites())
+            self.render_group.remove(*self.__hangar_group.sprites())
+            self.render_group.remove(*self.__enemy_shot_group.sprites())
+            self.__time = pygame.time.get_ticks()
+            TextWrite(self.render_group, 'You destroyed this wave',
+                        centerpos=(SCREEN_SIZE[0]//2, SCREEN_SIZE[1]*.4), 
+                        step_writing_time=100)
+            self.__iteration = self.__next_wave
     def update(self):
         super().update()
         self.__iteration()

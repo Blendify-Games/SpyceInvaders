@@ -74,7 +74,7 @@ class Game(object):
         ''' performs one iteration of the game
         and returns true if game still running '''
         if not self.running:
-            scenes.boot_scene(MenuScene())
+            scenes.boot_scene(OpeningScene())
             self.running = True
         self.game_input.listen()
         scenes.current_scene_update()

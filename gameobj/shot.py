@@ -24,8 +24,12 @@ class ShotObject(pygame.sprite.Sprite):
         self.index = 0
         self.image = self.image_list[self.index]
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect.center = posrect.center
         self.__time = pygame.time.get_ticks()
+        self.explosion_type = 'explosion_2' \
+                                if self.__shot_type == 'shot_3' \
+                                else 'explosion_1'
     def set_direction(self, go_up:bool):
         ''' if go_up is true the shot direction
         is up, otherwise it is down'''
@@ -43,7 +47,7 @@ class ShotObject(pygame.sprite.Sprite):
     def miss(self):
         explosion = Explosion(
             self.rect, self.__groups[0],
-            'explosion_1'
+            self.explosion_type
         )
         super().kill()
     def update(self):
