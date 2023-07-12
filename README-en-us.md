@@ -3,6 +3,11 @@
 This is an open source and *libre* game made by a Space Invaders fan as a tribute and also as an experimentation
 targeting the library [pygame-ce](https://pyga.me/) usage. The distribution of this game and its content is free of charge.
 
+## Where can I play Spyce Invaders?
+
+You can play the Space Invaders' web game version by accessing our website [blendifygames.com.br](https://www.blendifygames.com.br).
+You can also download this repository and follow the section <a href="#running-this-game">Running this game</a> steps.
+
 ## Running this game
 
 This game was developed using python 3.11. After the python installation, it is recomended that you create
