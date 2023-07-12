@@ -35,7 +35,7 @@ class InstructionsScene(Scene):
         TextWrite(self.render_group, 'cannon shoot',
                     centerpos=(SCREEN_SIZE[0]*.58, SCREEN_SIZE[1]*.495),
                     step_writing_time=100, wait_to_begin=2000)
-        Figure(self.render_group, 'esc-button', 
+        Figure(self.render_group, 'q-button', 
                 centerpos=(SCREEN_SIZE[0]*.3, SCREEN_SIZE[1]*.6),
                 fadein=True)
         Figure(self.render_group, '->', 
@@ -46,9 +46,9 @@ class InstructionsScene(Scene):
                     step_writing_time=100, wait_to_begin=3000)
         
         game_instance().game_input.set_keypressing({
-            pygame.K_ESCAPE: self.__escape
+            pygame.K_q: self.__leave_instructions_scene
         })
-    def __escape(self):
+    def __leave_instructions_scene(self):
         game_instance().game_input.clear_key_func()
         scenes.unload_current_scene()
     def update(self):
