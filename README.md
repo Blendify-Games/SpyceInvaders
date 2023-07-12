@@ -5,8 +5,8 @@ biblioteca [pygame-ce](https://pyga.me/). A distribuição deste jogo e seu cont
 
 ## Onde posso jogar?
 
-Você pode jogar a versão webgame do Spyce Invaders acessando o nosso site [blendifygames.com.br](https://www.blendifygames.com.br).
-Você pode também baixar o código deste jogo e seguir os passos da seção <a href="#executando-este-jogo">Executando este jogo</a>.
+Você pode jogar a versão web game do Spyce Invaders acessando o nosso site [blendifygames.com.br](https://www.blendifygames.com.br).
+Você pode também baixar este repositório e seguir os passos da seção <a href="#executando-este-jogo">Executando este jogo</a>.
 
 ## Executando este jogo
 
