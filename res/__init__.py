@@ -108,5 +108,9 @@ def img(img_name) -> str:
     '''returns image resource full path'''
     return os.path.join(_RD, 'img', img_name)
 
+def sound(sound_name) -> str:
+    '''returns sound resource full path'''
+    return os.path.join(_RD, 'sound', sound_name)
+
 def load_img(img_name) -> pygame.Surface:
     return pygame.image.load(img(img_name)).convert_alpha()

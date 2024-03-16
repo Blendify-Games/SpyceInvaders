@@ -1,6 +1,7 @@
 import pygame
 from res.config import SCREEN_SIZE
-from res.util import get_sprite_block, get_text
+from res.util import get_sprite_block
+from res.sound_control import OpeningMusic
 from scenes import Scene, boot_scene
 from scenes.menu_scene import MenuScene
 from scenes.writing import TextWrite
@@ -47,6 +48,8 @@ class _IntroTextAnimation():
         self.iterating = self.state1
         self.state_running = False
         self.__state_params = None
+        self.__mus = OpeningMusic()
+        self.__musvol = 1.0
     def state1(self):
         if not self.state_running:
             self.__time = pygame.time.get_ticks()
@@ -131,6 +134,8 @@ class _IntroTextAnimation():
         if t - self.__time > 50:
             self.__state_params['textalpha'] -= 10
             self.__time = t
+            self.__musvol -= 0.05
+            self.__mus.set_volume(self.__musvol)
         if self.__text_spr.image.get_alpha() == 0:
             return False
         return True

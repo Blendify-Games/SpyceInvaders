@@ -12,6 +12,7 @@ from gameobj.invaders import (
 from gameobj.hangar import Hangar
 from gameobj.cannon import Cannon
 from res.config import SCREEN_SIZE, ENTITY_COLORS
+from res.sound_control import GameMusic, play_explosion, play_laser
 from res.util import sprite_sheet, get_text, change_surf_color
 from res.util import SPRITE_SIZE
 from scenes.writing import TextWrite
@@ -90,6 +91,7 @@ class _PlayerControl(object):
     def __shoot(self):
         # shoot only if previous shot is gone
         if not len(self.__groups[1]):
+            play_laser()
             self.cannon.shoot(self.__groups[1])
     def is_player_dead(self) -> bool:
         collided1 = pygame.sprite.spritecollide(
@@ -97,6 +99,7 @@ class _PlayerControl(object):
         collided2 = pygame.sprite.spritecollide(
             self.cannon, self.__groups[2], False)
         if collided1 or collided2:
+            play_explosion()
             self.cannon.kill()
             return True
         player_shots = self.__groups[1].sprites()
@@ -105,6 +108,7 @@ class _PlayerControl(object):
                 player_shots[0], self.__groups[3]
             )
             if collided3:
+                play_explosion()
                 player_shots[0].miss()
         return False
     def get_controls(self) -> dict:
@@ -124,6 +128,7 @@ class GameScene(Scene):
             'move_time'            : 900,
             'speed_up_per_kill'    : 16
         }
+        self.__mus = GameMusic()
         self.__init_game()
     def __init_game(self):
         self._X, self._Y = _POS_INVADER
@@ -253,6 +258,7 @@ class GameScene(Scene):
                         step_writing_time=200, wait_to_begin=1000)
                 self.__time = t
         if t - self.__time > 5000:
+            self.__mus.stop()
             scenes.unload_current_scene()
 
     # game scene functionalities

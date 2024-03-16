@@ -5,9 +5,10 @@ from gameobj.explosion import Explosion
 from gameobj.shot import InvaderShotObject
 from res import SPRITE_MAP
 from res.config import (
-    SPRITE_SIZE, ENTITY_COLORS,
-    SHOT_COLORS, SCREEN_SIZE
+    SPRITE_SIZE, ENTITY_COLORS, 
+    SCREEN_SIZE
 )
+from res.sound_control import play_explosion
 from res.util import (
     change_surf_color,
     get_sprite_block
@@ -48,6 +49,7 @@ class Invader(pygame.sprite.Sprite):
         if limit:
             shot.LIMIT = limit
     def kill(self):
+        play_explosion()
         explosion = Explosion(
             self.rect, self.__groups[0],
             self._explosion_key

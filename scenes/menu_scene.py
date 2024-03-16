@@ -6,6 +6,7 @@ from gameobj.invaders import (
 )
 from game_instance import game_instance
 from res.config import SCREEN_SIZE, GAME_NAME
+from res.sound_control import MenuMusic, play_coin
 from scenes import Scene, boot_scene
 from scenes.game_scene import GameScene
 from scenes.instructions_scene import InstructionsScene
@@ -66,7 +67,11 @@ class _Menu():
             self.__time = t
 
 class MenuScene(Scene):
+    def __init__(self):
+        self.__mus = MenuMusic()
+        super().__init__()
     def setup(self):
+        self.__mus.set_volume(1)
         self.menu = _Menu(self.render_group)
         self.__time_pressed_init = None
         game_instance().game_input.set_keypressing({
@@ -83,11 +88,13 @@ class MenuScene(Scene):
     def start_game(self):
         self.menu.credits_text.setup_text('credit 01')
         if not self.__time_pressed_init:
+            play_coin()
             self.__time_pressed_init = pygame.time.get_ticks()
     def update(self):
         super().update()
         self.menu.update_invaders()
         t = pygame.time.get_ticks()
         if self.__time_pressed_init and t - self.__time_pressed_init > 1000:
+            self.__mus.set_volume(0)
             game_instance().game_input.clear_key_func()
             boot_scene(GameScene(), cache_previous=True)
