@@ -1,4 +1,5 @@
 import pygame
+import sys, platform
 
 import scenes
 from scenes.game_scene import GameScene
@@ -6,6 +7,12 @@ from scenes.menu_scene import MenuScene
 from scenes.opening_scene import OpeningScene
 from res import load_img
 from res.config import SCREEN_SIZE, GAME_NAME
+
+MAPEV = {
+    'action': pygame.K_SPACE,
+    'left': pygame.K_a,
+    'right': pygame.K_d
+}
 
 class GameInput(object):
     '''
@@ -42,6 +49,13 @@ class GameInput(object):
         Removes all listeners for all keys.
         '''
         self.__key_func = {}
+    def is_key_pressed(self, key):
+        if sys.platform == 'emscripten':
+            if platform.window.pressedButtons:
+                for ev in platform.window.pressedButtons:
+                    if MAPEV[ev] == key:
+                        return True
+        return pygame.key.get_pressed()[key]        
     def listen(self):
         '''
         Listen for mouse and keyboard events
@@ -50,7 +64,7 @@ class GameInput(object):
             if evt.type == pygame.QUIT:
                 self.__quit()
         for k, func in self.__key_func.items():
-            if pygame.key.get_pressed()[k]:
+            if self.is_key_pressed(k):
                 func()
 
 class Game(object):
