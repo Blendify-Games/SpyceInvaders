@@ -43,7 +43,7 @@ class GameInput(object):
         If listener = None then quit operation will
         be not executed anymore
         '''
-        self.__quit = listener if listener else self.no_operation
+        self.__quit = listener if listener else self.__no_operation
     def clear_key_func(self):
         '''
         Removes all listeners for all keys.
